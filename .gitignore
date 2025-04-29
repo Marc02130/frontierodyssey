@@ -1,0 +1,17 @@
+.DS_Store
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
+
+# Environment variables
+.env.prod
+.env.dev
+.env.local
+.env.test
+.env
+
+# Supabase
+.branches
+.temp
