@@ -1,9 +1,10 @@
 .DS_Store
-node_modules/
+node_modules
+package-lock.json
 
 # React Router
-.react-router/
-build/
+.react-router
+build
 
 # Environment variables
 .env.prod
