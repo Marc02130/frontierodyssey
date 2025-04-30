@@ -23,3 +23,6 @@ build
 
 # Documents
 .docs
+
+# SECRETS
+*secret*
