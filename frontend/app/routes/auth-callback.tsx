@@ -6,8 +6,32 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
+    const createUserInfo = async (userId: string, email: string) => {
+      const { error } = await supabase
+        .from('user_info')
+        .insert([
+          { 
+            id: userId,
+            email: email,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+      
+      if (error && error.code !== '23505') { // Ignore unique constraint violations
+        console.error('Error creating user_info:', error);
+      }
+    };
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Create user_info record for OAuth users
+        try {
+          await createUserInfo(session.user.id, session.user.email || '');
+        } catch (error) {
+          console.error('Error in auth callback:', error);
+        }
         navigate('/dashboard');
       }
     });

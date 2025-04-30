@@ -1,13 +1,20 @@
-import { Form, useNavigate, useLocation } from 'react-router';
+import { Form, useNavigate, useLocation, Link } from 'react-router';
 import { useAuth } from '../context/auth';
 import { useEffect, useState } from 'react';
 
 export default function Login() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,7 +26,7 @@ export default function Login() {
 
     try {
       await signIn(email, password);
-      navigate(from, { replace: true });
+      // Navigation will happen automatically via the useEffect when user state updates
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -105,6 +112,13 @@ export default function Login() {
             >
               <span>Sign in with Google</span>
             </button>
+          </div>
+
+          <div className="mt-6 text-center">
+            <span className="text-gray-600">Don't have an account? </span>
+            <Link to="/signup" className="text-indigo-600 hover:text-indigo-500">
+              Sign up
+            </Link>
           </div>
         </div>
       </div>

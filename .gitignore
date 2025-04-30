@@ -20,3 +20,6 @@ build
 
 # Cursor
 .cursor
+
+# Documents
+.docs

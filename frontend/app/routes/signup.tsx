@@ -1,4 +1,4 @@
-import { Form, useNavigate } from 'react-router';
+import { Form, useNavigate, Link } from 'react-router';
 import { useAuth } from '../context/auth';
 import { useState } from 'react';
 
@@ -23,8 +23,8 @@ export default function SignUp() {
 
     try {
       await signUp(email, password);
-      // Redirect to login page after successful signup
-      navigate('/login');
+      // Redirect to root path (login) after successful signup
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -98,6 +98,13 @@ export default function SignUp() {
             </button>
           </div>
         </Form>
+
+        <div className="mt-6 text-center">
+          <span className="text-gray-600">Already have an account? </span>
+          <Link to="/" className="text-indigo-600 hover:text-indigo-500">
+            Sign in
+          </Link>
+        </div>
       </div>
     </div>
   );
