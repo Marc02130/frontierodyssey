@@ -1,6 +1,16 @@
-# Welcome to React Router!
+# FrontierOdyssey Frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+FrontierOdyssey is an AI-powered educational platform for high school students, designed to foster engagement and academic growth through narrative-driven challenges and personalized learning. The frontend is built with React, Supabase, and Tailwind CSS, featuring:
+
+- 🚀 Conversational onboarding flow with a chat-based UI, powered by AI (Hugging Face, Mistral 7B)
+- 🔒 Secure authentication (email/password, Google OAuth) and protected routes via Supabase Auth
+- 📊 Personalized student dashboard with progress tracking, ELO ratings, and challenge history
+- 🧑‍🏫 AI mentor system for Socratic dialogue, feedback, and adaptive learning
+- 📝 Real-time data storage and updates using Supabase
+- 🎨 Responsive, accessible design with Tailwind CSS
+- 🧩 Modular, scalable architecture for future educator/parent access and new features
+
+The platform prioritizes privacy, accessibility, and scalability, supporting high-concurrency usage and compliance with educational regulations (FERPA, COPPA).
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
 
