@@ -14,12 +14,14 @@ export default function Login() {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       const code = new URLSearchParams(location.search).get('code');
+      console.log('Login page email confirmation code:', code);
       if (code) {
         try {
           // Get the current session to access user data
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          console.log('Login page session after getSession:', session, 'sessionError:', sessionError);
           if (sessionError || !session?.user) {
-            console.error('No session or user:', { sessionError });
+            console.error('No session or user:', { sessionError, session });
             setError('Failed to confirm email. Please try again.');
             return;
           }
@@ -36,7 +38,7 @@ export default function Login() {
             ])
             .select()
             .single();
-          
+          console.log('userInfoError:', userInfoError);
           if (userInfoError && userInfoError.code !== '23505') { // Ignore unique constraint violations
             console.error('Error creating user_info:', userInfoError);
             setError('Failed to create user profile. Please contact support.');

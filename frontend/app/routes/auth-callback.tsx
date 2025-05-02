@@ -24,7 +24,6 @@ export default function AuthCallback() {
           return;
         }
 
-        console.log('Creating user_info record');
         const { error: userInfoError } = await supabase
           .from('user_info')
           .insert([
@@ -42,8 +41,6 @@ export default function AuthCallback() {
           navigate('/login?error=user_info_failed');
           return;
         }
-
-        console.log('Successfully completed auth callback');
         navigate('/dashboard');
       } catch (error) {
         console.error('Error in auth callback:', error);

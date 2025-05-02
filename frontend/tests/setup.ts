@@ -36,17 +36,6 @@ export const mockUser: User = {
   phone: undefined
 };
 
-export const mockSession: Session = {
-  access_token: 'test-access-token',
-  token_type: 'bearer',
-  expires_in: 3600,
-  expires_at: 1746106961,
-  refresh_token: 'test-refresh-token',
-  provider_token: null,
-  provider_refresh_token: null,
-  user: mockUser
-};
-
 // Mock window.location
 const mockLocation = {
   origin: 'http://localhost:5173',

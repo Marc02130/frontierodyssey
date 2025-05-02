@@ -286,6 +286,9 @@ describe('OAuth Authentication', () => {
       return originalFromImpl?.(table) ?? {};
     });
 
+    // Set session in testStorage to simulate successful OAuth code exchange
+    testStorage.set('sb-session', JSON.stringify(mockSession));
+
     // Render with OAuth callback URL and proper routing
     console.log('[Test] Rendering with URL:', '/auth/callback?code=test-auth-code');
     render(

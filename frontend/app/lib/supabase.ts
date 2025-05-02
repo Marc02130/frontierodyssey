@@ -7,21 +7,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Custom storage adapter for tests
-const isTest = process.env.NODE_ENV === 'test';
-export const testStorage = new Map<string, string>();
+// Only use test storage in test environment, otherwise use browser storage
+const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+export const testStorage = new Map();
 
 const storageAdapter = isTest ? {
-  getItem: (key: string) => {
-    return testStorage.get(key) || null;
-  },
-  setItem: (key: string, value: string) => {
-    testStorage.set(key, value);
-  },
-  removeItem: (key: string) => {
-    testStorage.delete(key);
-  },
+  getItem: (key: string): string | null => testStorage.get(key) || null,
+  setItem: (key: string, value: string): void => { testStorage.set(key, value); },
+  removeItem: (key: string): void => { testStorage.delete(key); },
 } : undefined;
+
+console.log('Supabase client storage adapter:', isTest ? 'testStorage' : 'browser storage');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
