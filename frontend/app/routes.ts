@@ -21,4 +21,8 @@ export default [
     path: "/dashboard",
     file: "routes/dashboard.tsx",
   },
+  {
+    path: "/onboarding",
+    file: "routes/onboarding.tsx",
+  },
 ] satisfies RouteConfig;

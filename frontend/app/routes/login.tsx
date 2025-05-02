@@ -46,7 +46,18 @@ export default function Login() {
           }
 
           // Navigate to dashboard on success
-          navigate('/dashboard');
+          const { data, error } = await supabase
+            .from('user_info')
+            .select('onboarded')
+            .eq('id', session.user.id)
+            .single();
+          if (data && data.onboarded) {
+            console.log('user_info onboarding check:', { data, error });
+            navigate('/dashboard');
+          } else {
+            console.log('user_info onboarding check:', { data, error });
+            navigate('/onboarding');
+          }
         } catch (error) {
           console.error('Error in email confirmation:', error);
           setError('Failed to confirm email. Please try again.');
@@ -56,13 +67,6 @@ export default function Login() {
 
     handleEmailConfirmation();
   }, [location.search, navigate]);
-
-  // Redirect to dashboard if already logged in
-  useEffect(() => {
-    if (user && !location.search) { // Don't redirect if we have a confirmation code
-      navigate('/dashboard');
-    }
-  }, [user, navigate, location.search]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,6 +83,24 @@ export default function Login() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
+  
+  useEffect(() => {
+    async function checkOnboarding() {
+      if (user && !location.search) {
+        const { data, error } = await supabase
+          .from('user_info')
+          .select('onboarded')
+          .eq('id', user.id)
+          .single();
+        if (data && data.onboarded) {
+          navigate('/dashboard');
+        } else {
+          navigate('/onboarding');
+        }
+      }
+    }
+    checkOnboarding();
+  }, [user, navigate, location.search]);
 
   const handleGoogleSignIn = async () => {
     try {
