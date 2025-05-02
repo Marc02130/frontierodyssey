@@ -9,7 +9,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { supabase } from '../../app/lib/supabase';
 import { setupSupabaseMock, resetSupabaseMocks, mockUser, mockSession, mocks } from '../mocks/supabase_mock';
 import { createBrowserRouter, RouterProvider, Routes, Route } from 'react-router-dom';
-import AuthCallback from '../../app/routes/auth-callback';
+import AuthCallback from '../../app/routes/login/auth-callback';
 
 // Setup Supabase mock
 setupSupabaseMock();

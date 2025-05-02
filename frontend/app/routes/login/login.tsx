@@ -1,7 +1,7 @@
 import { Form, useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../context/auth';
+import { useAuth } from '../../context/auth';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function Login() {
   const { signIn, signInWithGoogle, user } = useAuth();
@@ -33,6 +33,7 @@ export default function Login() {
               { 
                 id: session.user.id,
                 email: session.user.email || '',
+                user_type: 'student',
                 created_at: new Date().toISOString()
               }
             ])
@@ -52,11 +53,9 @@ export default function Login() {
             .eq('id', session.user.id)
             .single();
           if (data && data.onboarded) {
-            console.log('user_info onboarding check:', { data, error });
             navigate('/dashboard');
           } else {
-            console.log('user_info onboarding check:', { data, error });
-            navigate('/onboarding');
+            navigate('/dashboard/onboarding');
           }
         } catch (error) {
           console.error('Error in email confirmation:', error);
@@ -67,6 +66,25 @@ export default function Login() {
 
     handleEmailConfirmation();
   }, [location.search, navigate]);
+  
+  useEffect(() => {
+    // Only run after a normal login (not during email confirmation)
+    if (user) {
+      (async () => {
+        const { data, error } = await supabase
+          .from('user_info')
+          .select('onboarded')
+          .eq('id', user.id)
+          .single();
+        if (data && data.onboarded) {
+          navigate('/dashboard');
+        } else {
+          navigate('/dashboard/onboarding');
+        }
+      })();
+    }
+    // eslint-disable-next-line
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -84,24 +102,6 @@ export default function Login() {
     }
   };
   
-  useEffect(() => {
-    async function checkOnboarding() {
-      if (user && !location.search) {
-        const { data, error } = await supabase
-          .from('user_info')
-          .select('onboarded')
-          .eq('id', user.id)
-          .single();
-        if (data && data.onboarded) {
-          navigate('/dashboard');
-        } else {
-          navigate('/onboarding');
-        }
-      }
-    }
-    checkOnboarding();
-  }, [user, navigate, location.search]);
-
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();

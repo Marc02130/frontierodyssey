@@ -1,5 +1,5 @@
 import { Form, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/auth';
+import { useAuth } from '../../context/auth';
 import { useState } from 'react';
 
 export default function SignUp() {
