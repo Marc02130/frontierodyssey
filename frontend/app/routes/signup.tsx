@@ -1,4 +1,4 @@
-import { Form, useNavigate, Link } from 'react-router';
+import { Form, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/auth';
 import { useState } from 'react';
 
@@ -22,9 +22,11 @@ export default function SignUp() {
     }
 
     try {
-      await signUp(email, password);
-      // Redirect to root path (login) after successful signup
-      navigate('/');
+      const result = await signUp(email, password);
+      if (result?.emailConfirmationRequired) {
+        // Navigate to check-email page with email info
+        navigate('/check-email', { state: { email } });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }

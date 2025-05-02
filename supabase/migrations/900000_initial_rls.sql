@@ -1,4 +1,3 @@
-
 -- RLS Policies
 -- Enable RLS for all tables
 ALTER TABLE public.user_info ENABLE ROW LEVEL SECURITY;
@@ -15,6 +14,9 @@ CREATE POLICY user_info_select ON public.user_info
 CREATE POLICY user_info_update ON public.user_info
   FOR UPDATE
   USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+CREATE POLICY user_info_insert ON public.user_info
+  FOR INSERT
   WITH CHECK (auth.uid() = id);
 
 -- student_conversations: Students can view/insert their own conversations

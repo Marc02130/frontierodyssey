@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { useLocation } from 'react-router-dom';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{ emailConfirmationRequired: boolean } | undefined>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
 };
@@ -16,6 +17,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+  console.log('AuthProvider render:', { 
+    pathname: location.pathname,
+    search: location.search,
+    loading,
+    hasUser: !!user
+  });
 
   const createUserInfo = useCallback(async (userId: string, email: string) => {
     const { error } = await supabase
@@ -36,37 +45,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Check active sessions and sets the user
-    async function getInitialSession() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-        if (mounted) {
-          setUser(null);
-          setLoading(false);
-        }
-      }
-    }
-
-    getInitialSession();
-
-    // Listen for changes on auth state (sign in, sign out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
+    console.log('AuthProvider init effect running');
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', { hasSession: !!session });
+      setUser(session?.user ?? null);
+      setLoading(false);
     });
 
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', { event, hasSession: !!session });
+        setUser(session?.user ?? null);
+      }
+    );
+
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -75,8 +71,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        setUser(null);
+        throw error;
+      }
       setUser(data.user);
+    } catch (error) {
+      setUser(null);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -89,13 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       if (data.user) {
-        await createUserInfo(data.user.id, data.user.email || email);
+        // Don't create user_info here anymore
+        // Instead, set a temporary user state for UI feedback
         setUser(data.user);
+        return { emailConfirmationRequired: true };
       }
     } finally {
       setLoading(false);
     }
-  }, [createUserInfo]);
+  }, []);
 
   const signOut = useCallback(async () => {
     setLoading(true);
@@ -109,13 +113,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) throw error;
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        setUser(null);
+        throw error;
+      }
+    } catch (error) {
+      setUser(null);
+      throw error;
+    }
   }, []);
 
   const value = {

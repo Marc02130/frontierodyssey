@@ -7,4 +7,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+// Custom storage adapter for tests
+const isTest = process.env.NODE_ENV === 'test';
+export const testStorage = new Map<string, string>();
+
+const storageAdapter = isTest ? {
+  getItem: (key: string) => {
+    return testStorage.get(key) || null;
+  },
+  setItem: (key: string, value: string) => {
+    testStorage.set(key, value);
+  },
+  removeItem: (key: string) => {
+    testStorage.delete(key);
+  },
+} : undefined;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: 'pkce',
+    storage: storageAdapter,
+    detectSessionInUrl: true,
+  },
+}); 

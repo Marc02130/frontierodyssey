@@ -51,7 +51,7 @@ frontier-odyssey/
 └── README.md
 
 Database Schema
-The database is managed in Supabase’s public schema, integrated with auth.users for authentication. The schema is split into two migration files for clarity:
+The database is managed in Supabase's public schema, integrated with auth.users for authentication. The schema is split into two migration files for clarity:
 Schema (supabase/migrations/000001_frontier_odyssey_schema.sql)
 
 Tables:
@@ -95,12 +95,29 @@ REACT_APP_LLM_API_KEY=your-llm-key
 Supabase Setup:
 
 Create a Supabase project (free tier) at app.supabase.com.
-Enable authentication (email, Google OAuth).
-Deploy schema and RLS:supabase db push --file supabase/migrations/000001_frontier_odyssey_schema.sql
+Enable authentication (email, Google OAuth):
+1. Go to Authentication > Providers in Supabase dashboard
+2. Enable Email auth with "Confirm email" option
+3. Enable Google OAuth:
+   - Create a Google Cloud Project at console.cloud.google.com
+   - Enable Google OAuth2 API
+   - Configure OAuth consent screen (internal-only recommended)
+   - Create OAuth 2.0 Client credentials
+   - Add authorized redirect URIs:
+     - http://localhost:5173/auth/callback (development)
+     - https://[YOUR_SUPABASE_PROJECT].supabase.co/auth/v1/callback (production)
+   - Add authorized JavaScript origins:
+     - http://localhost:5173 (development)
+     - https://[YOUR_DOMAIN] (production)
+   - Copy Client ID and Client Secret to Supabase Auth > Providers > Google
+
+Deploy schema and RLS:
+supabase db push --file supabase/migrations/000001_frontier_odyssey_schema.sql
 supabase db push --file supabase/migrations/000002_frontier_odyssey_rls.sql
 
 
-Deploy edge functions (e.g., elo-update, interest-parser):supabase functions deploy elo-update
+Deploy edge functions (e.g., elo-update, interest-parser):
+supabase functions deploy elo-update
 supabase functions deploy interest-parser
 
 
@@ -108,7 +125,8 @@ supabase functions deploy interest-parser
 
 Temporary Hosting:
 
-Build and deploy frontend to GitHub Pages or Netlify:cd frontend
+Build and deploy frontend to GitHub Pages or Netlify:
+cd frontend
 npm run build
 npm install -D gh-pages
 gh-pages -d build

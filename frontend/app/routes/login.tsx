@@ -1,6 +1,7 @@
-import { Form, useNavigate, useLocation, Link } from 'react-router';
+import { Form, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/auth';
 import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const { signIn, signInWithGoogle, user } = useAuth();
@@ -9,12 +10,57 @@ export default function Login() {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
 
+  // Handle email confirmation
+  useEffect(() => {
+    const handleEmailConfirmation = async () => {
+      const code = new URLSearchParams(location.search).get('code');
+      if (code) {
+        try {
+          // Get the current session to access user data
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError || !session?.user) {
+            console.error('No session or user:', { sessionError });
+            setError('Failed to confirm email. Please try again.');
+            return;
+          }
+
+          // Create user_info record
+          const { error: userInfoError } = await supabase
+            .from('user_info')
+            .insert([
+              { 
+                id: session.user.id,
+                email: session.user.email || '',
+                created_at: new Date().toISOString()
+              }
+            ])
+            .select()
+            .single();
+          
+          if (userInfoError && userInfoError.code !== '23505') { // Ignore unique constraint violations
+            console.error('Error creating user_info:', userInfoError);
+            setError('Failed to create user profile. Please contact support.');
+            return;
+          }
+
+          // Navigate to dashboard on success
+          navigate('/dashboard');
+        } catch (error) {
+          console.error('Error in email confirmation:', error);
+          setError('Failed to confirm email. Please try again.');
+        }
+      }
+    };
+
+    handleEmailConfirmation();
+  }, [location.search, navigate]);
+
   // Redirect to dashboard if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !location.search) { // Don't redirect if we have a confirmation code
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.search]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

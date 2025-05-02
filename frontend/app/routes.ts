@@ -10,6 +10,10 @@ export default [
     file: "routes/signup.tsx",
   },
   {
+    path: "/check-email",
+    file: "routes/check-email.tsx",
+  },
+  {
     path: "/auth/callback",
     file: "routes/auth-callback.tsx",
   },
