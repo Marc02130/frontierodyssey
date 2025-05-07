@@ -21,6 +21,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "@vitest/coverage-v8": "^3.1.2",
     "@vitest/ui": "^3.1.2",
+    "axios": "^1.9.0",
     "isbot": "^5.1.17",
     "jsdom": "^26.1.0",
     "msw": "^2.7.5",

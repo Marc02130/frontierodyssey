@@ -55,10 +55,11 @@ CREATE TABLE public.messages (
   message_id SERIAL PRIMARY KEY, -- SERIAL for storage efficiency
   conversation_id UUID NOT NULL REFERENCES public.conversations(conversation_id) ON DELETE CASCADE, -- NOT NULL
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, -- NOT NULL, user_id for all messages
-  sender_type VARCHAR(10) NOT NULL CHECK (sender_type IN ('user', 'ai')), -- Replaced ai_generated, indicates student or AI
+  sender_type VARCHAR(10) NOT NULL CHECK (sender_type IN ('student', 'parent', 'teacher','ai')), -- Replaced ai_generated, indicates student or AI
   message_type VARCHAR(50) NOT NULL CHECK (
     message_type IN ('onboard_interests', 'onboard_grade', 'onboard_comfort', 'profile_edit', 'reflection', 'challenge_question', 'challenge_response', 'challenge_interaction')
   ), -- Added profile_edit for edit logs
+  topic VARCHAR(50) NOT NULL,
   message TEXT NOT NULL CHECK (LENGTH(message) <= 250 AND LENGTH(TRIM(message)) > 0), -- 250 chars, non-empty
   is_draft BOOLEAN DEFAULT FALSE, -- For partial progress
   message_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -237,25 +238,6 @@ BEGIN
   COMMIT;
 END;
 $$;
-
--- Trigger for message validation
-CREATE OR REPLACE FUNCTION validate_message_content()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.message ~ '[^\x20-\x7E]' OR LENGTH(TRIM(NEW.message)) = 0 THEN
-    RAISE EXCEPTION 'Message contains invalid characters or is empty';
-  END IF;
-  IF (NEW.message_type IN ('onboard_interests', 'challenge_question') AND NEW.sender_type != 'ai') OR
-     (NEW.message_type IN ('onboard_grade', 'onboard_comfort', 'profile_edit', 'reflection', 'challenge_response', 'challenge_interaction') AND NEW.sender_type != 'student') THEN
-    RAISE EXCEPTION 'Invalid sender_type for message_type';
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER message_content_trigger
-BEFORE INSERT OR UPDATE ON public.messages
-FOR EACH ROW EXECUTE FUNCTION validate_message_content();
 
 -- Helper function for admin role
 CREATE OR REPLACE FUNCTION has_role(role_name text)
