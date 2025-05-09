@@ -85,7 +85,7 @@ serve(async (req) => {
 
     // If this is the very first request (no response and no messages), call AI with just the system prompt
     if (!response && (!messages || messages.length === 0)) {
-      const chatMessages = [{ role: 'system', content: onboardingPrompt }, { role: 'user', content: 'I am ready to start the onboarding process.' }];
+      const chatMessages = [{ role: 'system', content: onboardingPrompt }];
       const hfResult = await hf.chatCompletion({
         provider: 'hf-inference',
         model: ONBOARD_HF_MODEL,
