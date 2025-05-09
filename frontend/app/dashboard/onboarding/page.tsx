@@ -88,7 +88,7 @@ export default function Onboarding() {
     setMessages(prev => {
       const newMessages = [...prev, { sender: 'student', text: sanitized }];
       setQuestionCount(newMessages.filter(msg => msg.sender === 'ai').length);
-      if (questionCount + 1 >= 7) {
+      if (questionCount >= 7) {
         setIsComplete(true);
       }
       return newMessages;

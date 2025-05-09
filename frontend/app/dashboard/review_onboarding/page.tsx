@@ -14,32 +14,46 @@ export default function ReviewOnboarding() {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const { data: { user } } = await createClient().auth.getUser();
-      const userId = user?.id;
+      const supabase = createClient();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError('User not authenticated');
+        return;
+      }
+      const userId = user.id;
 
-      if (!userId) return;
-
-      const { data: convs, error: convErr } = await createClient()
+      const { data: convs, error: convErr } = await supabase
         .from('conversations')
-        .select('conversation_id')
+        .select('conversation_id, user_id')
         .eq('user_id', userId)
         .eq('topic_type', 'onboard')
         .limit(1);
 
       if (convErr || !convs?.length) {
         setError('No onboarding conversation found');
+        router.push('/dashboard/onboarding');
+        return;
+      }
+      const conversation = convs[0];
+
+      if (conversation.user_id !== userId) {
+        setError('Access denied: Conversation does not belong to user');
         return;
       }
 
-      const conversationId = convs[0].conversation_id;
-
-      const { data: msgData, error: msgErr } = await createClient()
+      const { data: msgData, error: msgErr } = await supabase
         .from('messages')
-        .select('sender_type, message')
-        .eq('conversation_id', conversationId);
+        .select('message_id, sender_type, message, is_draft, user_id')
+        .eq('conversation_id', conversation.conversation_id);
 
       if (msgErr) {
-        setError('Failed to load messages');
+        setError('Failed to load messages. Please try again.');
+        return;
+      }
+
+      if (!msgData?.length) {
+        setError('No messages found. Please complete onboarding.');
+        router.push('/dashboard/onboarding');
         return;
       }
 
@@ -53,7 +67,7 @@ export default function ReviewOnboarding() {
     };
 
     fetchMessages();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -70,36 +84,53 @@ export default function ReviewOnboarding() {
     setError(null);
 
     try {
-      const { data: { user } } = await createClient().auth.getUser();
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id;
 
-      const { data: convs, error: convErr } = await createClient()
+      const { data: convs, error: convErr } = await supabase
         .from('conversations')
         .select('conversation_id')
         .eq('user_id', userId)
         .eq('topic_type', 'onboard')
         .limit(1);
 
-      if (convErr || !convs?.length) throw new Error('No onboarding conversation found');
+      if (convErr || !convs?.length) {
+        throw new Error('No onboarding conversation found');
+      }
 
       const conversationId = convs[0].conversation_id;
 
-      const { error: msgErr } = await createClient()
-        .from('messages')
-        .update({ message: responses })
-        .eq('conversation_id', conversationId)
-        .eq('sender_type', 'user');
+      const userMessages = messages
+        .map((msg, idx) => ({ ...msg, idx }))
+        .filter(msg => msg.sender === 'student');
 
-      if (msgErr) throw msgErr;
+      for (let i = 0; i < userMessages.length; i++) {
+        const response = responses[i];
+        const { error: msgErr } = await supabase
+          .from('messages')
+          .update({ message: response, is_draft: false })
+          .eq('conversation_id', conversationId)
+          .eq('sender_type', 'user')
+          .eq('message', userMessages[i].text);
+
+        if (msgErr) {
+          throw new Error('Failed to update message');
+        }
+      }
 
       let grade_level = null,
         interests: string[] = [],
         subject_comfort: any = {};
       responses.forEach(r => {
-        if (/9th|10th|11th|12th/.test(r)) grade_level = r.match(/9th|10th|11th|12th/)![0];
+        if (/9th|10th|11th|12th|10/.test(r)) {
+          grade_level = r.match(/9th|10th|11th|12th|10/)![0].replace('10', '10th');
+        }
         if (/math/i.test(r)) interests.push('Math');
         if (/science/i.test(r)) interests.push('Science');
         if (/english/i.test(r)) interests.push('English');
+        if (/gym/i.test(r)) interests.push('Physical Education');
+        if (/chicken/i.test(r)) interests.push('Animal Care');
         if (/([1-5])/.test(r)) {
           const val = parseInt(r.match(/([1-5])/g)![0]);
           if (/math/i.test(r)) subject_comfort.math = val;
@@ -108,7 +139,7 @@ export default function ReviewOnboarding() {
         }
       });
 
-      const { error: infoErr } = await createClient()
+      const { error: infoErr } = await supabase
         .from('user_info')
         .update({
           grade_level,
@@ -118,11 +149,14 @@ export default function ReviewOnboarding() {
         })
         .eq('id', userId);
 
-      if (infoErr) throw infoErr;
+      if (infoErr) {
+        throw new Error('Failed to update user info');
+      }
 
       router.push('/dashboard');
     } catch (err: any) {
       setError('Failed to save. Please try again!');
+      console.error(err);
     } finally {
       setSaving(false);
     }
