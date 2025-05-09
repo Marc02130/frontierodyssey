@@ -1,38 +1,39 @@
-"use client";
+'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
-type HeaderProps = {};
-
-const supabaseClient = createClient();
-
-export default function Header({}: HeaderProps) {
+export default function Header() {
+  const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
 
   const handleSignOut = async () => {
-    const { error } = await supabaseClient.auth.signOut({ scope: 'local' });
-    if (!error) {
-      router.push('/');
-    } else {
-      console.error('Error signing out:', error);
-    }
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
   return (
-    <header className="w-full flex items-center justify-between py-4 px-6 bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 shadow-md">
-      <div className="flex items-center gap-2">
-        <span className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-pink-300 to-indigo-400 drop-shadow-lg tracking-tight select-none">
-          FrontierOdyssey
-        </span>
-        <span className="text-2xl ml-2">🌌</span>
-      </div>
-      <button
-        onClick={handleSignOut}
-        className="ml-auto bg-white/20 hover:bg-white/40 text-white font-semibold px-4 py-2 rounded transition-colors shadow"
-      >
-        Sign Out
-      </button>
+    <header className="bg-indigo-600 text-white p-4 flex justify-between items-center">
+      <h1 className="text-xl font-semibold">FrontierOdyssey</h1>
+      <nav className="flex gap-4">
+        <Link
+          href="/dashboard/profile"
+          className={`px-4 py-2 rounded hover:bg-indigo-700 ${pathname === '/dashboard/profile' ? 'bg-indigo-700' : ''}`}
+          aria-label="Navigate to Profile"
+        >
+          Profile 👤
+        </Link>
+        <button
+          onClick={handleSignOut}
+          className="px-4 py-2 rounded hover:bg-red-600 bg-red-500"
+          aria-label="Sign Out"
+        >
+          Sign Out 🚪
+        </button>
+      </nav>
     </header>
   );
 }
