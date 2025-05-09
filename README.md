@@ -18,51 +18,30 @@ AI: Lightweight LLM (e.g., Hugging Face Mistral 7B) for dialogue and interest pa
 Hosting: AWS Amplify for Next.js hosting (MVP); Vercel evaluation pending
 
 Directory Structure
-├── frontend
-│   ├── app
-│   │   ├── auth
-│   │   │   ├── callback
-│   │   │   │   └── page.tsx
-│   │   │   └── confirm
-│   │   │       └── route.ts
-│   │   ├── check-email
-│   │   │   └── page.tsx
-│   │   ├── components
-│   │   │   ├── Header.tsx
-│   │   │   └── Sidebar.tsx
-│   │   ├── dashboard
-│   │   │   ├── layout.tsx
-│   │   │   ├── onboarding
-│   │   │   │   └── page.tsx
-│   │   │   ├── page.tsx
-│   │   │   └── review_onboarding
-│   │   │       └── page.tsx
-│   │   ├── error
-│   │   │   └── login
-│   │   │       └── page.tx
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   ├── login
-│   │   │   └── page.tsx
-│   │   ├── middleware.ts
-│   │   ├── page.tsx
-│   │   └── signup
-│   │       └── page.tsx
-│   ├── eslint.config.mjs
-│   ├── next-env.d.ts
-│   ├── next.config.ts
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── postcss.config.mjs
-│   ├── public
-│   │   └── favicon.ico
-│   ├── README.md
-│   ├── tsconfig.json
-│   └── utils
-│       └── supabase
-│           ├── client.ts
-│           ├── middleware.ts
-│           └── server.ts
+frontend
+├── app
+│   ├── auth
+│   │   ├── callback
+│   │   └── confirm
+│   ├── check-email
+│   ├── components
+│   ├── dashboard
+│   │   ├── challenges
+│   │   │   ├── [challenge_id]
+│   │   │   ├── active
+│   │   │   ├── completed
+│   │   │   ├── on-hold
+│   │   │   └── recommended
+│   │   ├── onboarding
+│   │   ├── profile
+│   │   └── review_onboarding
+│   ├── error
+│   │   └── login
+│   ├── login
+│   └── signup
+├── public
+└── utils
+    └── supabase
 
 
 Database Schema
